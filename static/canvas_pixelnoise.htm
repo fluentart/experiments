@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; padding: 0; background: #404040;}
+        #myCanvas { width: 500; height: 500;} 
+    </style>
+</head>
+<body>
+<canvas id="myCanvas" ></canvas>
+
+<script>
+
+var x =  0;
+var y = 15;
+var speed = 5;
+
+function animate() {
+
+    reqAnimFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.oRequestAnimationFrame;
+    reqAnimFrame(animate);
+
+    x += speed;
+
+    if(x <= 0 || x >= 475){
+        speed = -speed;
+    }
+
+    draw();
+}
+
+var canvas  = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+var img = context.createImageData(500,500);
+
+function draw() {
+    for (var a = 0; a < 500*500*4; a++)
+    {
+        img.data[a] = Math.random()*255
+    }
+    context.putImageData( img , 0, 0);   
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
