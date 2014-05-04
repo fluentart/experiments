@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0;}
+  body { background-color: rgb(25,25,25); overflow: hidden; }
+  #processing { outline: none;}
+</style>
+
+</head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+
+
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var ctx = canvas.getContext('2d');
+var img = ctx.createImageData(canvas.width, canvas.height);
+
+
+
+window.onresize = function(event)
+{
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  img = ctx.createImageData(canvas.width, canvas.height);
+};
+
+var zoom = 100;
+
+function main()
+{ 
+  zoom += 100;
+  for (var i=0;i<img.data.length;i+=4)
+  {
+    var x = (i/4)%canvas.width
+    var y = (i/4)/canvas.width
+
+    x -= canvas.width/2 
+    y -= canvas.height/2
+
+    x /= zoom
+    y /= zoom
+
+    x -= Math.PI/4.4
+    y -= Math.PI/11.35
+    
+    var result = iterateEquation(x,y, zoom, 100)  
+    //console.log(result)
+
+      img.data[i+0]=255-result[1]
+      img.data[i+1]=255-result[2]
+      img.data[i+2]=1/(result[1]*result[2])
+      img.data[i+3]=255  
+    
+  }
+  ctx.putImageData(img, 0, 0);
+
+  
+
+  window.requestAnimationFrame(main)
+}
+
+/*
+ * Main renderer equation.
+ *
+ * Returns number of iterations and values of Z_{n}^2 = Tr + Ti at the time
+ * we either converged (n == iterations) or diverged.  We use these to
+ * determined the color at the current pixel.
+ *
+ * The Mandelbrot set is rendered taking
+ *
+ *     Z_{n+1} = Z_{n} + C
+ *
+ * with C = x + iy, based on the "look at" coordinates.
+ *
+ * The Julia set can be rendered by taking
+ *
+ *     Z_{0} = C = x + iy
+ *     Z_{n+1} = Z_{n} + K
+ *
+ * for some arbitrary constant K.  The point C for Z_{0} must be the
+ * current pixel we're rendering, but K could be based on the "look at"
+ * coordinate, or by letting the user select a point on the screen.
+ */
+function iterateEquation(Cr, Ci, escapeRadius, iterations)
+{
+  var Zr = 0;
+  var Zi = 0;
+  var Tr = 0;
+  var Ti = 0;
+  var n  = 0;
+
+  for ( ; n<iterations && (Tr+Ti)<=escapeRadius; ++n ) {
+    Zi = 2 * Zr * Zi + Ci;
+    Zr = Tr - Ti + Cr;
+    Tr = Zr * Zr;
+    Ti = Zi * Zi;
+  }
+
+  /*
+   * Four more iterations to decrease error term;
+   * see http://linas.org/art-gallery/escape/escape.html
+   */
+  for ( var e=0; e<4; ++e ) {
+    Zi = 2 * Zr * Zi + Ci;
+    Zr = Tr - Ti + Cr;
+    Tr = Zr * Zr;
+    Ti = Zi * Zi;
+  }
+
+  return [n, Tr, Ti];
+}
+
+main();
+
+</script>
+</body>
+</html>

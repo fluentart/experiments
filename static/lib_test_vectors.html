@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none;}
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+var wallA = new Line({
+    x1:Math.random()*window.innerWidth, 
+    y1:Math.random()*window.innerHeight, 
+    x2:Math.random()*window.innerWidth, 
+    y2:Math.random()*window.innerHeight})
+
+var wallB = new Line({
+    x1:Math.random()*window.innerWidth, 
+    y1:Math.random()*window.innerHeight, 
+    x2:Math.random()*window.innerWidth, 
+    y2:Math.random()*window.innerHeight})
+
+var drawn = 0
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+  } 
+
+  pr.draw = function() 
+  {   
+    
+      //
+      pr.background(25, 25, 25)
+
+      var xmid = window.innerWidth/2
+      var ymid = window.innerHeight/2
+
+      //grid
+      pr.stroke(100,100,100,20);
+      pr.line(0,ymid,window.innerWidth,ymid)
+      pr.line(xmid-1,0,xmid-1,window.innerHeight)
+
+      //wallA
+      /*
+      pr.stroke(255,0,0)
+      pr.line(wallA.x1, wallA.y1, wallA.x2, wallA.y2)
+      var extendwall = new Line(wallA)
+      extendwall.scale(100)
+      pr.stroke(255,0,0,45)
+      pr.line(extendwall.x1, extendwall.y1, extendwall.x2, extendwall.y2)
+
+      //wallB
+      pr.stroke(0,225,0)
+      pr.line(wallB.x1, wallB.y1, wallB.x2, wallB.y2)
+      var extendwall = new Line(wallB)
+      extendwall.scale(100)
+      pr.stroke(0,255,0,45)
+      pr.line(extendwall.x1, extendwall.y1, extendwall.x2, extendwall.y2)
+      */
+
+      //HIT
+      var hittest = wallA.intersect(wallB)
+      pr.fill(255)
+      pr.ellipse(hittest.x,hittest.y,5,5)    
+
+      pr.stroke(255,0,0)
+      pr.line(hittest.testa.x1+xmid, hittest.testa.y1+ymid, hittest.testa.x2+xmid, hittest.testa.y2+ymid)
+      pr.stroke(0,255,0)
+      pr.line(hittest.testb.x1+xmid, hittest.testb.y1+ymid, hittest.testb.x2+xmid, hittest.testb.y2+ymid)
+
+      pr.noStroke()
+      pr.fill(255,0,0)
+      pr.ellipse(hittest.testa.x1+xmid, hittest.testa.y1+ymid, 5, 5)
+      pr.fill(255,0,0,100)
+      pr.ellipse(hittest.testa.x2+xmid, hittest.testa.y2+ymid, 5, 5)
+
+      pr.noStroke()
+      pr.fill(0,255,0)
+      pr.ellipse(hittest.testb.x1+xmid, hittest.testb.y1+ymid, 5, 5)
+      pr.fill(0,255,0,100)
+      pr.ellipse(hittest.testb.x2+xmid, hittest.testb.y2+ymid, 5, 5)
+
+
+      if (hittest.status == 2) {
+        pr.noStroke()
+        pr.fill(0,255,255)
+        pr.ellipse(xmid, hittest.testc+ymid, 5, 5)    
+      }
+      
+
+    
+
+      
+
+
+  } //end draw
+  
+} //end processing
+
+var keydown = function (key) {
+  
+  if (key.keyCode == 87) {//W
+    player.velocity.y = -2;
+  }
+
+  if (key.keyCode == 68) {//D
+    player.velocity.x = 2;
+  }
+
+  if (key.keyCode == 83) {//S
+    player.velocity.y = 2;
+  }
+
+  if (key.keyCode == 65) {//A
+    player.velocity.x = -2;
+  }
+}
+
+var keyup = function (key) {
+  
+  if (key.keyCode == 87) {//W
+    player.velocity.y = 0;
+  }
+
+  if (key.keyCode == 68) {//D
+    player.velocity.x = 0;
+  }
+
+  if (key.keyCode == 83) {//S
+    player.velocity.y = 0;
+  }
+
+  if (key.keyCode == 65) {//A
+    player.velocity.x = 0;
+  }
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+ 
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>

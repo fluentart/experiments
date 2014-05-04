@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none; cursor: none;}
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+var walls = []
+for (var a in [0, 1, 2, 3, 4]) {
+    var chargeLine = new Line({
+    x1:Math.random()*window.innerWidth, 
+    y1:Math.random()*window.innerHeight, 
+    x2:Math.random()*window.innerWidth, 
+    y2:Math.random()*window.innerHeight})
+
+    walls.push(chargeLine)
+}
+
+
+
+var player = {
+  aimx:  0,
+  aimy:  0,
+  pos: {
+    x:  window.innerWidth/2,
+    y:  window.innerHeight/2,
+  },
+  velocity: {
+    x: 0,
+    y: 0
+  },
+  projectiles: [],
+  score: 0
+}
+
+var hitpoints = []
+
+player.shoot = function () {
+
+  var bullet = {
+    pos : {
+      x: player.pos.x,
+      y: player.pos.y
+    },
+    targetx: player.aimx,
+    targety: player.aimy,
+    directionx: player.aimx-player.pos.x,
+    directiony: player.aimy-player.pos.y,
+    time : 255,
+  }
+
+  player.projectiles.push(bullet)
+}
+
+player.update = function () {
+  //player position
+  player.pos.x += player.velocity.x
+  player.pos.y += player.velocity.y
+
+  //projectiles
+  for (var projectile in player.projectiles) {
+    //intersections
+    
+    var projectileline = new Line({
+      x1 : player.projectiles[projectile].pos.x,
+      y1 : player.projectiles[projectile].pos.y,
+      x2 : player.projectiles[projectile].pos.x + player.projectiles[projectile].directionx,
+      y2 : player.projectiles[projectile].pos.y + player.projectiles[projectile].directiony,
+    })
+
+    for (var wall in walls) {
+      var hittest = projectileline.intersect(walls[wall])
+      if (hittest.status == 2) {
+        hitpoints.push(hittest)
+      }
+    }
+
+
+    player.projectiles[projectile].pos.x += player.projectiles[projectile].directionx/100
+    player.projectiles[projectile].pos.y += player.projectiles[projectile].directiony/100
+    player.projectiles[projectile].time -= 1;
+  }
+
+  
+
+
+  //get rid of projectiles with time less than 0 left.
+  player.projectiles = player.projectiles.filter(function (projectile) {
+    return projectile.time > 0;
+  })
+
+}
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+  } 
+
+  pr.draw = function() 
+  {   
+    //
+    pr.background(25, 25, 25)
+
+    //draw walls 
+
+    
+    for (var wall in walls) {
+      pr.stroke(25,115,225)
+      pr.line(walls[wall].x1, walls[wall].y1, walls[wall].x2, walls[wall].y2)
+      var extendwall = new Line(walls[wall])
+      extendwall.scale(100)
+      pr.stroke(25,115,225,25)
+      pr.line(extendwall.x1, extendwall.y1, extendwall.x2, extendwall.y2)
+    }
+
+    //draw hitpoints
+    pr.noStroke()
+    pr.fill(255,0,0)
+    for (var hit in hitpoints) {
+      pr.ellipse(hitpoints[hit].x,hitpoints[hit].y,5,5)
+    }
+    hitpoints = []
+
+    //draw bullets    
+    for (var projectile in player.projectiles) {
+      var bullettodraw = player.projectiles[projectile]
+      
+      pr.stroke(0,255,55,bullettodraw.time/5);   
+      var trail = new Line({
+        x1 : bullettodraw.pos.x,
+        y1 : bullettodraw.pos.y,
+        x2 : bullettodraw.pos.x + bullettodraw.directionx,
+        y2 : bullettodraw.pos.y + bullettodraw.directiony,
+      })
+      trail.scale(100)
+      pr.line(trail.x1, trail.y1, trail.x2, trail.y2)
+
+      //pr.stroke(0,255,55,bullettodraw.time);
+      //pr.line(bullettodraw.pos.x, bullettodraw.pos.y, bullettodraw.targetx, bullettodraw.targety)
+
+      pr.noStroke();
+      pr.fill(0,255,0,255);
+      pr.ellipse(bullettodraw.pos.x, bullettodraw.pos.y, 5,5)
+    }
+
+    //draw player
+    pr.stroke(255,125,0)
+    pr.line(player.pos.x, player.pos.y-10, player.pos.x, player.pos.y+10)
+    pr.line(player.pos.x-10, player.pos.y, player.pos.x+10, player.pos.y)
+
+    //draw player aim +
+    pr.stroke(255,255,0)
+    pr.line(player.aimx, player.aimy-10, player.aimx, player.aimy+10)
+    pr.line(player.aimx-10, player.aimy, player.aimx+10, player.aimy)
+
+    // done drawing, calculate for the next frame.
+    player.update();
+  } //end draw
+  
+} //end processing
+
+var keydown = function (key) {
+  
+  if (key.keyCode == 87) {//W
+    player.velocity.y = -2;
+  }
+
+  if (key.keyCode == 68) {//D
+    player.velocity.x = 2;
+  }
+
+  if (key.keyCode == 83) {//S
+    player.velocity.y = 2;
+  }
+
+  if (key.keyCode == 65) {//A
+    player.velocity.x = -2;
+  }
+}
+
+var keyup = function (key) {
+  
+  if (key.keyCode == 87) {//W
+    player.velocity.y = 0;
+  }
+
+  if (key.keyCode == 68) {//D
+    player.velocity.x = 0;
+  }
+
+  if (key.keyCode == 83) {//S
+    player.velocity.y = 0;
+  }
+
+  if (key.keyCode == 65) {//A
+    player.velocity.x = 0;
+  }
+}
+
+var mousemove = function (mouse) {
+  player.aimy = mouse.y;
+  player.aimx = mouse.x;
+}
+
+var mousedown = function (data) {
+  player.shoot();
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>

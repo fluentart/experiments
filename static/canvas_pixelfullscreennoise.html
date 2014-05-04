@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0;}
+  body { background-color: rgb(25,25,25); overflow: hidden; }
+  #processing { outline: none;}
+</style>
+</head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var ctx = canvas.getContext('2d');
+var img = ctx.createImageData(canvas.width, canvas.height);
+
+
+
+window.onresize = function(event)
+{
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  img = ctx.createImageData(canvas.width, canvas.height);
+};
+
+function main()
+{
+  for (var i=0;i<img.data.length;i+=4)
+  {
+  img.data[i+0]=Math.random()*255;
+  img.data[i+1]=Math.random()*255;
+  img.data[i+2]=Math.random()*255;
+  img.data[i+3]=255
+  }
+  ctx.putImageData(img, 0, 0);
+  window.requestAnimationFrame(main)
+}
+
+main();
+
+</script>
+</body>
+</html>

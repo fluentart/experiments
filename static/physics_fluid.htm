@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; padding: 0; background: #404040;}
+        #myCanvas { width: 500; height: 500;} 
+    </style>
+    <script type="text/javascript" src="lib/pixels.js"></script>
+</head>
+<body>
+<canvas id="myCanvas" ></canvas>
+
+<script>
+
+var canvas  = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+var img = context.createImageData(500,500);
+var pixels = new Pixels(img,context);
+
+
+var fluid = []
+var fluidprev = []
+
+var simulateFluid = function () {
+    for (var x = 0; x < 500; x++) {
+        for (var y = 0; y < 500; y++) {
+
+            //neighbours
+            for (var nx = -1; nx <= 1; nx++) {
+                for (var ny = -1; ny <= 1; ny++) {
+                    var cx = x + nx
+                    var cy = y + ny
+                    if ((cx > 0) && (cx < 500) && (cy > 0) && (cy < 500)) {
+                        fluid[x][y] = (fluidprev[x][y] + fluidprev[cx][cy])/2                
+                    }
+                }
+            }
+
+
+        }    
+    }
+
+    for (var x = 0; x < 500; x++) {
+        for (var y = 0; y < 500; y++) {
+            fluidprev[x][y] = fluid[x][y]
+        }
+    }
+}
+
+for (var x = 0; x < 500; x++) {
+    fluid[x] = []
+    fluidprev[x] = []
+    for (var y = 0; y < 500; y++) {
+        
+        if (x < 100) {
+            fluid[x][y] = 200;
+            fluidprev[x][y] = 200;
+        } else 
+        {
+            fluid[x][y] = 50;    
+            fluidprev[x][y] = 50;   
+        }
+    }    
+}
+
+function main() {
+
+    reqAnimFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.oRequestAnimationFrame;
+    reqAnimFrame(main);
+    
+    draw();
+}
+
+
+
+function draw() {
+    //pixels.noise(); 
+
+    simulateFluid();
+    for (var x = 0; x < 500; x++) {
+        for (var y = 0; y < 500; y++) {
+            pixels.putpixel(x,y,fluid[x][y],fluid[x][y],fluid[x][y],255)
+        }    
+    }
+
+    
+    pixels.update();
+}
+
+main();
+
+</script>
+
+</body>
+</html>

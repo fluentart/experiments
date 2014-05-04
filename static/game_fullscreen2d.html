@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none;}
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var player = {
+  x: -100,
+  y: 0
+}
+
+
+
+  var processing = function (pr) 
+  {
+    pr.setup = function() 
+    { 
+      window.pr = pr; //makes it available globally
+      pr.size( window.innerWidth, window.innerHeight ); 
+      //resize();
+    } 
+
+    pr.draw = function() 
+    {   
+      pr.background(25, 25, 25)
+      //pr.camera((pr.mouseX-250)/10, (pr.mouseY-250)/10, (pr.mouseY/3) / Math.tan(Math.PI/6), 0, 0, 0, 0, 1, 0);
+      pr.stroke(255)
+      pr.line(Math.random()*2000,Math.random()*2000,Math.random()*2000, Math.random()*2000)
+      //camera(eyeX, eyeY, eyeZ,centerX, centerY, centerZ,upX, upY, upZ)      
+      
+
+
+ 
+    } //end draw
+    
+  } //end processing
+
+  var mousemove = function (data) {
+  }
+
+  var resize = function () {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    window.pr.size( window.innerWidth, window.innerHeight ); 
+  }
+
+  document.addEventListener( 'mousemove', mousemove, false );
+  window.addEventListener('resize', resize, false);
+
+
+  var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>

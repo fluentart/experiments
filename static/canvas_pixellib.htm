@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; padding: 0; background: #404040;}
+        #myCanvas { width: 500; height: 500;} 
+    </style>
+    <script type="text/javascript" src="lib/pixels.js"></script>
+</head>
+<body>
+<canvas id="myCanvas" ></canvas>
+
+<script>
+
+var canvas  = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+var img = context.createImageData(500,500);
+var pixels = new Pixels(img,context);
+
+function main() {
+
+    reqAnimFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.oRequestAnimationFrame;
+    reqAnimFrame(main);
+
+    draw();
+}
+
+
+
+function draw() {
+    pixels.noise(); 
+    pixels.putpixel(10,20,255,255,255,255)
+    pixels.update();
+}
+
+main();
+
+</script>
+
+</body>
+</html>

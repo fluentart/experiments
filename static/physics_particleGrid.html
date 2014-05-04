@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+ * { margin: 0; padding: 0;}
+ body { background-color: rgb(25,25,25); overflow: none;}
+ #processing { width: 500px; height: 500px; outline: none;}
+    </style>
+    <script src="/lib/vectors.js"></script>
+
+<script src="/lib/processing.min.js"></script>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+</head>
+<body>
+<canvas id="processing" ></canvas>
+        <script>
+
+
+          var chargeVector   = new Vector({ x: 1,  y: 0,  z: 0,  w: 0 })
+          var greenLine = new Vector({  x: 0,  y: 1,  z: 0,  w: 0 })
+          var blueLine  = new Vector({  x: 0,  y: 0,  z: 1,  w: 0 })             
+          var whiteLine  = new Vector({  x: .6,  y: .6,  z: 1,  w: 0 })  
+
+
+
+          
+
+          
+          
+
+
+
+var groups = {
+  charge:    [-1, -2/3, -1/3, 0, 1/3, 2/3, 1],        //Q yellow diagonal 30deg? 38degrees
+  hypercharge: 0.1,       //mediated by the photon // hyper
+  weak:      [-1, -1/2, 0, 1/2, 1],       //weak nuclear horizontal
+  strong:    0,       //strong nuclear
+  gravity:   0
+}
+
+/* START vertical weak lines */
+var weakLinesVert = []
+
+for (var w in groups.weak) {
+  var weakLine = new Line({
+      x1:groups.weak[w], 
+      y1:-100, 
+      x2:groups.weak[w], 
+      y2:100})
+  weakLinesVert.push(weakLine)
+}
+/* END  vertical weak lines*/
+
+/* START make the diagonal charge lines for intersect later */
+  chargeVector.normalize()
+  blueLine.normalize()
+  chargeVector.rotate(blueLine, (-Math.PI/2) + ((19/360)*2*Math.PI) )
+
+  var chargeLine = new Line({
+    x1:chargeVector.x*-300, 
+    y1:chargeVector.y*-300, 
+    x2:chargeVector.x*300, 
+    y2:chargeVector.y*300})
+
+
+  var chargeLinesPerp = []
+  for (var c in groups.charge) {
+    var tempchargeAmplitude = new Vector(chargeVector)
+    tempchargeAmplitude.normalize();
+    tempchargeAmplitude.scale(groups.charge[c]) // 1/3 2/3 1/1 etc..
+
+
+    chargeVector.normalize()
+    var tempcharge = new Vector(chargeVector)
+    blueLine.normalize()
+    tempcharge.rotate(blueLine, -Math.PI/2)     
+
+    var tempchargeLine = new Line({x1:tempchargeAmplitude.x, y1:tempchargeAmplitude.y, x2:tempcharge.x+tempchargeAmplitude.x, y2:tempcharge.y+tempchargeAmplitude.y})
+
+    tempchargeLine.scale(10)
+    chargeLinesPerp.push(tempchargeLine)
+  }
+/* END make the diagonal charge lines for intersect later */
+
+
+
+
+
+          var particles = []
+
+          var createparticles = function () {
+            for (var c in chargeLinesPerp) {     
+              for (var w in weakLinesVert) {
+                var newparticle = {}      
+                //newparticle.charge = groups.charge[c]
+                //newparticle.weak = groups.weak[w]
+                var calchyper = chargeLinesPerp[c].intersect(weakLinesVert[w])
+                if (calchyper.status == 2) {
+                  newparticle.weak = weakLinesVert[w].x1
+                  newparticle.hypercharge= calchyper.y
+                  particles.push(newparticle)
+                }          
+                
+              }
+            }            
+            console.log(particles.length + " created")
+          }
+
+          createparticles();
+
+          var scale = 50;
+
+          var processing = function (pr) 
+          {
+
+            
+               pr.setup = function() { pr.size( 500, 500, pr.OPENGL ); 
+              pr.mouseX = 250;
+              pr.mouseY = 250;  } 
+
+            pr.draw = function() 
+            {   
+              pr.background(25, 25, 25)
+
+              
+
+              //camera(eyeX, eyeY, eyeZ,centerX, centerY, centerZ,upX, upY, upZ)
+              
+              pr.camera((pr.mouseX-250)/10, (pr.mouseY-250)/10, (pr.mouseY/3) / Math.tan(Math.PI/6), 0, 0, 0, 0, 1, 0);
+         
+
+              //grid(pr, 200, 8)
+
+
+              pr.stroke(255,35,25) //red
+              pr.line(chargeLine.x1,chargeLine.y1,-1,chargeLine.x2, chargeLine.y2, -1)
+              pr.stroke(25,255,75) //green
+              pr.line(0,0,0,greenLine.x, greenLine.y, greenLine.z)
+              pr.stroke(25,125,255) //blue
+              pr.line(0,0,0,blueLine.x, blueLine.y, blueLine.z)
+      
+
+
+
+              
+              //charge lines
+              pr.stroke(255,125,0) //charge
+              for (var c in chargeLinesPerp) {
+                pr.line( chargeLinesPerp[c].x1*scale, chargeLinesPerp[c].y1*scale, 0, chargeLinesPerp[c].x2*scale,      chargeLinesPerp[c].y2*scale, 0)
+              }
+
+              //normalise
+              chargeVector.normalize()
+              greenLine.normalize()
+              blueLine.normalize()
+              whiteLine.normalize()
+              whiteLine.scale(100)
+              chargeVector.scale(100)
+              greenLine.scale(100)
+              blueLine.scale(100)
+
+
+              pr.stroke(255,255,255) //white
+              for (var w in weakLinesVert) {
+                  pr.line(weakLinesVert[w].x1*scale,weakLinesVert[w].y1*scale,0,
+                          weakLinesVert[w].x2*scale,weakLinesVert[w].y2*scale,0)
+              }
+
+              //draw particles
+              pr.stroke(255,255,255) //white
+              for (var p in particles) {
+                  pr.line(particles[p].weak*scale,particles[p].hypercharge*scale,0,
+                          particles[p].weak*scale,particles[p].hypercharge*scale,10)
+              }
+
+              pr.stroke(125)
+              pr.line(-50,0,50,0)
+
+
+            } //end draw
+            
+          } //end processing
+
+          var mousedown = function (data) {
+          }
+
+          document.addEventListener( 'mousedown', mousedown, false );
+
+          var canvas = document.getElementById("processing");
+          var processingInstance = new Processing(canvas, processing);
+
+
+
+
+
+          var grid = function(pr, size, divisions) 
+          {
+            var zheight = -0.5
+            var divsize = size/divisions
+
+            pr.stroke(255,255,255,25) //gray
+
+            for (var x = -size; x<=size ;x += divsize) 
+            {
+              pr.line(x,-size,zheight,x,size , zheight)
+              for (var y = -size; y<=size; y += divsize) 
+              {                
+                pr.line(-size,y,zheight,size,y,zheight)
+              }  
+
+            }
+
+          }
+
+
+
+
+
+        </script>
+</body>
+</html>
