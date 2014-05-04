@@ -5,8 +5,23 @@
 
   by Rouan van der Ende (fluentart.com)
 
-  2014 04 25
 */
+
+
+var Point = function (optional) { 
+  if (optional) {
+    this.x = optional.x
+    this.y = optional.y
+  } else {
+    this.x = 0
+    this.y = 0
+  }
+}
+
+Point.prototype.scale = function (factor) {
+  this.x *= factor
+  this.y *= factor
+}
 
 function Vector(optional) { 
   if (optional) {
@@ -42,6 +57,12 @@ Vector.prototype.normalize = function() {
   } else { 
     return false
   }
+}
+
+Vector.prototype.move = function (point) {
+  var p = new Point(point)
+  this.x += p.x;
+  this.y += p.y;
 }
 
  Vector.prototype.angle = function(bvector) {
@@ -212,77 +233,54 @@ Line.prototype.intersect = function (b) {
     btemp = new Line(a)
   }
   
-  //move origin to center of a
-  
-  var offsetx = (atemp.x1+atemp.x2)/2
-  var offsety = (atemp.y1+atemp.y2)/2
+    //move origin to center of line a    
+    var center = new Point(atemp.center());
+    center.scale(-1)
+    atemp.move(center)
+    btemp.move(center)
 
-  atemp.x1 -= offsetx;
-  atemp.y1 -= offsety;
-  atemp.x2 -= offsetx;
-  atemp.y2 -= offsety;
-
-  btemp.x1 -= offsetx;
-  btemp.y1 -= offsety;
-  btemp.x2 -= offsetx;
-  btemp.y2 -= offsety;
-
-  //rotate all so a lies on y axis
+    ////////////////////////////////////////////
+    //rotate all so a lies on y axis
 
     //find angle to y axis
-    var anglevector = new Vector({x:atemp.x1, y:atemp.y1, z:0})
-    var yvector = new Vector({x:0,y:1,z:0})
+    var anglevector = new Vector({x:atemp.x1, y:atemp.y1, z:0});
+    var yvector = new Vector({x:0,y:1,z:0});
     anglevector.normalize();            
-    var angle = anglevector.angle(yvector)
-    var zvector = new Vector(anglevector)
-    zvector.cross(yvector)
-    zvector.normalize()
+    var angle = anglevector.angle(yvector);
+    var zvector = new Vector(anglevector);
+    zvector.cross(yvector);
+    zvector.normalize();
     //rotate to match y axis
-    atemp.rotate(zvector, angle)
-    btemp.rotate(zvector, angle)
+    atemp.rotate(zvector, angle);
+    btemp.rotate(zvector, angle);
 
+    ////////////////////////////////////////////////////
     //calculate if/where b intersects with y axis
-    var slope = btemp.slope() //(btemp.y2 - btemp.y1)/(btemp.x2 - btemp.x1)
-    var c = btemp.y1 - slope*btemp.x1
+    var slope = btemp.slope();
+    var c = btemp.y1 - slope*btemp.x1;
     var intersectionPoint = new Vector({x:0,y:c,z:0})
 
     //export for debug
-    var testa = new Line(atemp)
-    var testb = new Line(btemp)    
-    status.testa = testa
-    status.testb = testb
-    
-
+    var testa = new Line(atemp);
+    var testb = new Line(btemp); 
+    status.testa = testa;
+    status.testb = testb;
     status.testc = c
-    //status.status = 1
+
     //test if actual hit on length of atemp
     if ((status.testa.y2 <= c)&&(c <= status.testa.y1)) {
-      status.status = 2
+      status.status = 2;
       if ((status.testb.x1 < 0)&&(status.testb.x2 < 0)) { status.status = 1}
       if ((status.testb.x1 > 0)&&(status.testb.x2 > 0)) { status.status = 1}
     }
   
-  // reverse transformations
-    intersectionPoint.rotate(zvector, -angle)              
-    atemp.rotate(zvector, -angle)
-    btemp.rotate(zvector, -angle)            
-    atemp.x1 += offsetx;
-    atemp.y1 += offsety;
-    atemp.x2 += offsetx;
-    atemp.y2 += offsety;
-    btemp.x1 += offsetx;
-    btemp.y1 += offsety;
-    btemp.x2 += offsetx;
-    btemp.y2 += offsety;
-    intersectionPoint.x += offsetx;           
-    intersectionPoint.y += offsety;  
-
-    //console.log(intersectionPoint)
+    // reverse transformations to find original position of intersection point
+    intersectionPoint.rotate(zvector, -angle);              
+    center.scale(-1);
+    intersectionPoint.move(center);
     
-    status.x = intersectionPoint.x
-    status.y = intersectionPoint.y
-    status.atemp = atemp
-    status.btemp = btemp
+    status.x = intersectionPoint.x;
+    status.y = intersectionPoint.y;
     return status
 }
 
@@ -295,103 +293,18 @@ Line.prototype.equals = function (b) {
 
 }
 
-Line.prototype.intersectold = function (lineA, lineB){
-	//warning this function seems buggy
-	//rather use the newer Line.intersect
+//returns the center point of a line
+Line.prototype.center = function () {
+    return {x: (this.x1+this.x2)/2 , y: (this.y1+this.y2)/2}
+}
 
-	var x1 = lineA.x1
-	var y1 = lineA.y1
-	var x2 = lineA.x2
-	var y2 = lineA.y2
-
-	var x3 = lineB.x1
-	var y3 = lineB.y1
-	var x4 = lineB.x2
-	var y4 = lineB.y2
-
-	var a1, a2, b1, b2, c1, c2;
-	var r1, r2 , r3, r4;
-	var denom, offset, num;
-
-	//status 
-	// 0 = no intersect
-	// 1 = colinear
-	// 2 = intersects
-	var result = {status: 0, x: 0, y: 0}
-
-	// Compute a1, b1, c1, where line joining points 1 and 2
-	// is "a1 x + b1 y + c1 = 0".
-	a1 = y2 - y1;
-	b1 = x1 - x2;
-	c1 = (x2 * y1) - (x1 * y2);
-
-	// Compute r3 and r4.
-	r3 = ((a1 * x3) + (b1 * y3) + c1);
-	r4 = ((a1 * x4) + (b1 * y4) + c1);
-
-	// Check signs of r3 and r4. If both point 3 and point 4 lie on
-	// same side of line 1, the line segments do not intersect.
-	if ((r3 != 0) && (r4 != 0) && same_sign(r3, r4)){
-		result.status = 0
-	return result;
-	}
-
-	// Compute a2, b2, c2
-	a2 = y4 - y3;
-	b2 = x3 - x4;
-	c2 = (x4 * y3) - (x3 * y4);
-
-	// Compute r1 and r2
-	r1 = (a2 * x1) + (b2 * y1) + c2;
-	r2 = (a2 * x2) + (b2 * y2) + c2;
-
-	// Check signs of r1 and r2. If both point 1 and point 2 lie
-	// on same side of second line segment, the line segments do
-	// not intersect.
-	if ((r1 != 0) && (r2 != 0) && (same_sign(r1, r2))){
-		result.status = 0
-	return result;
-	}
-
-	//Line segments intersect: compute intersection point.
-	denom = (a1 * b2) - (a2 * b1);
-
-	if (denom == 0) {
-		result.status = 1
-	return result;
-	}
-
-	if (denom < 0){ 
-	offset = -denom / 2; 
-	} 
-	else {
-	offset = denom / 2 ;
-	}
-
-	// The denom/2 is to get rounding instead of truncating. It
-	// is added or subtracted to the numerator, depending upon the
-	// sign of the numerator.
-	num = (b1 * c2) - (b2 * c1);
-	if (num < 0){
-	x = (num - offset) / denom;
-	} 
-	else {
-	x = (num + offset) / denom;
-	}
-
-	num = (a2 * c1) - (a1 * c2);
-	if (num < 0){
-	y = ( num - offset) / denom;
-	} 
-	else {
-	y = (num + offset) / denom;
-	}
-
-	// lines_intersect
-	result.status = 2
-	result.x = x;  
-	result.y = y;  
-	return result;
+//returns the center point of a line
+Line.prototype.move = function (point) {
+  var p = new Point(point)
+  this.x1 += p.x;
+  this.y1 += p.y;
+  this.x2 += p.x;
+  this.y2 += p.y;
 }
 
 

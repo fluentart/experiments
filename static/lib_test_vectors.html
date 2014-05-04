@@ -28,17 +28,7 @@ canvas.width  = window.innerWidth;
 canvas.height = window.innerHeight;
 
 
-var wallA = new Line({
-    x1:Math.random()*window.innerWidth, 
-    y1:Math.random()*window.innerHeight, 
-    x2:Math.random()*window.innerWidth, 
-    y2:Math.random()*window.innerHeight})
 
-var wallB = new Line({
-    x1:Math.random()*window.innerWidth, 
-    y1:Math.random()*window.innerHeight, 
-    x2:Math.random()*window.innerWidth, 
-    y2:Math.random()*window.innerHeight})
 
 var drawn = 0
 
@@ -48,44 +38,72 @@ var processing = function (pr)
   { 
     window.pr = pr; //makes it available globally
     pr.size( window.innerWidth, window.innerHeight ); 
+    pr.frameRate(0.2)
   } 
 
   pr.draw = function() 
   {   
     
-      //
-      pr.background(25, 25, 25)
-
       var xmid = window.innerWidth/2
       var ymid = window.innerHeight/2
+
+    var wallA = new Line({
+    x1:(Math.random()*100)-50, 
+    y1:(Math.random()*100)-50, 
+    x2:(Math.random()*100)-50, 
+    y2:(Math.random()*100)-50})
+
+    var wallB = new Line({
+    x1:(Math.random()*100)-50, 
+    y1:(Math.random()*100)-50, 
+    x2:(Math.random()*100)-50, 
+    y2:(Math.random()*100)-50})
+      //
+      wallA.scale(2)
+      wallB.scale(2)
+      pr.background(25, 25, 25)
+
+
 
       //grid
       pr.stroke(100,100,100,20);
       pr.line(0,ymid,window.innerWidth,ymid)
       pr.line(xmid-1,0,xmid-1,window.innerHeight)
 
+      xmid -= 200;
+
       //wallA
-      /*
-      pr.stroke(255,0,0)
-      pr.line(wallA.x1, wallA.y1, wallA.x2, wallA.y2)
+      pr.stroke(255)
+      pr.line(wallA.x1+xmid, wallA.y1+ymid, wallA.x2+xmid, wallA.y2+ymid)
       var extendwall = new Line(wallA)
       extendwall.scale(100)
-      pr.stroke(255,0,0,45)
-      pr.line(extendwall.x1, extendwall.y1, extendwall.x2, extendwall.y2)
+      pr.stroke(255,255,255,45)
+      pr.line(extendwall.x1+xmid, extendwall.y1+ymid, extendwall.x2+xmid, extendwall.y2+ymid)
 
       //wallB
-      pr.stroke(0,225,0)
-      pr.line(wallB.x1, wallB.y1, wallB.x2, wallB.y2)
+      pr.stroke(225)
+      pr.line(wallB.x1+xmid, wallB.y1+ymid, wallB.x2+xmid, wallB.y2+ymid)
       var extendwall = new Line(wallB)
       extendwall.scale(100)
-      pr.stroke(0,255,0,45)
-      pr.line(extendwall.x1, extendwall.y1, extendwall.x2, extendwall.y2)
-      */
+      pr.stroke(255,255,255,45)
+      pr.line(extendwall.x1+xmid, extendwall.y1+ymid, extendwall.x2+xmid, extendwall.y2+ymid)
+      
 
       //HIT
       var hittest = wallA.intersect(wallB)
       pr.fill(255)
-      pr.ellipse(hittest.x,hittest.y,5,5)    
+      if (hittest.status == 2) {
+        pr.ellipse(hittest.x+xmid,hittest.y+ymid,5,5)   
+      }
+
+      //TEST DATA
+      xmid += 200;  
+
+      if (hittest.status == 2) {
+        pr.noStroke()
+        pr.fill(0,255,255)
+        pr.ellipse(xmid, hittest.testc+ymid, 5, 5)    
+      }
 
       pr.stroke(255,0,0)
       pr.line(hittest.testa.x1+xmid, hittest.testa.y1+ymid, hittest.testa.x2+xmid, hittest.testa.y2+ymid)
@@ -105,11 +123,7 @@ var processing = function (pr)
       pr.ellipse(hittest.testb.x2+xmid, hittest.testb.y2+ymid, 5, 5)
 
 
-      if (hittest.status == 2) {
-        pr.noStroke()
-        pr.fill(0,255,255)
-        pr.ellipse(xmid, hittest.testc+ymid, 5, 5)    
-      }
+
       
 
     
