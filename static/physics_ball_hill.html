@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none; }
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var ball = {}
+ball.position = new Vector();
+ball.position.y = 100;
+ball.position.x = 200;
+ball.velocity = new Vector();
+ball.velocity.x = 0
+ball.velocity.y = 0
+ball.line = new Line();
+
+var wall = {}
+wall.line = new Line();
+wall.line.x2 = window.innerWidth;
+wall.line.y1 = 400;
+wall.line.y2 = 500;
+
+var game = {}
+game.lasttime = Date.now()/1000;
+game.tDelta = 1/50;
+
+game.gravity = new Vector();
+game.gravity.y = 9.8*100
+game.gravity.x = 0
+
+var debug = {}
+debug.surfaceNormal = new Line();
+
+game.update = function () {
+  var now = Date.now()/1000;
+  game.tDelta = now - game.lasttime;
+  game.lasttime = now;
+ 
+  var p = {}
+  p.vI = ball.velocity;
+  p.pI = ball.position;
+  p.vF = new Vector();
+  p.vF.x = p.vI.x + (game.gravity.x*game.tDelta)
+  p.vF.y = p.vI.y + (game.gravity.y*game.tDelta)
+  p.distance = new Vector();
+  p.distance.x = (p.vI.x + p.vF.x)/2*game.tDelta
+  p.distance.y = (p.vI.y + p.vF.y)/2*game.tDelta
+  p.pF = new Vector()
+  p.pF.x = p.pI.x + p.distance.x
+  p.pF.y = p.pI.y + p.distance.y
+  p.line = new Line();
+  p.line.x1 = p.pI.x
+  p.line.y1 = p.pI.y
+  p.line.x2 = p.pF.x
+  p.line.y2 = p.pF.y
+
+  var impact = p.line.intersect(wall.line); //TEST FOR COLLISION
+  ball.line = p.line
+
+  if (impact.status != 2) { //NO COLLISION
+  
+    ball.velocity = p.vF;
+    ball.position = p.pF;    
+  
+  } else {                  //YES COLLISION
+  
+    //CALCULATE DISTANCE TO IMPACT
+    var distance = new Vector();
+    distance.x = ball.position.x - impact.x;
+    distance.y = ball.position.y - impact.y;
+   
+    //CALCULATE IMPACT VELOCITY
+    var Vimpact = new Vector();
+    Vimpact.x = Math.sqrt( ball.velocity.x*ball.velocity.x + 2*game.gravity.x*(ball.position.x - impact.x))
+    Vimpact.y = Math.sqrt( ball.velocity.y*ball.velocity.y + 2*game.gravity.y*(ball.position.y - impact.y))
+    
+    //CALCULATE TIME TILL IMPACT
+    var Vavg = new Vector();
+    Vavg.x = (ball.velocity.x+Vimpact.x)/2;
+    Vavg.y = (ball.velocity.y+Vimpact.y)/2;
+
+    //CALCULATE IMPACT SURFACE VECTOR NORMAL
+    var surfaceVector = new Vector(impact);
+    surfaceVector = surfaceVector.minus(wall.line.v1())
+    
+    surfaceVector.normalize();
+    //ALTER VELOCITY VECTOR
+    ball.velocity = Vimpact
+    ball.velocity.rotate(surfaceVector, Math.PI)
+    
+    var Timpact = distance.length() / Vavg.length()
+    var timeleft = game.tDelta - Timpact;
+    ball.position = impact
+
+    //BALL IS ON SURFACE
+    //CALCULATE UP MOVEMENT FOR TIME REMAINING
+
+    var p = {}
+    p.vI = ball.velocity;
+    p.pI = ball.position;
+    p.vF = new Vector();
+    p.vF.x = p.vI.x + (game.gravity.x*timeleft)
+    p.vF.y = p.vI.y + (game.gravity.y*timeleft)
+    p.distance = new Vector();
+    p.distance.x = (p.vI.x + p.vF.x)/2*timeleft
+    p.distance.y = (p.vI.y + p.vF.y)/2*timeleft
+    p.pF = new Vector()
+    p.pF.x = p.pI.x + p.distance.x
+    p.pF.y = p.pI.y + p.distance.y
+    p.line = new Line();
+    p.line.x1 = p.pI.x
+    p.line.y1 = p.pI.y
+    p.line.x2 = p.pF.x
+    p.line.y2 = p.pF.y
+
+    ball.velocity = p.vF;
+    ball.position = p.pF;  
+
+  }  
+  
+}
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+  } 
+
+  pr.draw = function() 
+  {   
+    
+
+    pr.background(25, 25, 25);
+
+    pr.fill(255,125,0);    
+    pr.noStroke();
+    pr.ellipse(ball.position.x, ball.position.y, 5, 5)   
+
+    pr.stroke(0,255,0)
+    pr.line(wall.line.x1,wall.line.y1,wall.line.x2,wall.line.y2)
+
+    pr.line(ball.line.x1,ball.line.y1,ball.line.x2,ball.line.y2)
+    pr.stroke(255,0,0)
+    pr.line(debug.surfaceNormal.x1,debug.surfaceNormal.y1,debug.surfaceNormal.x2,debug.surfaceNormal.y2)
+
+    game.update();
+
+  } //end draw  
+} //end processing
+
+var keydown = function (key) {
+
+}
+
+var keyup = function (key) {
+
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>

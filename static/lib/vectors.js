@@ -24,17 +24,18 @@ Point.prototype.scale = function (factor) {
 }
 
 function Vector(optional) { 
-  if (optional) {
-    this.x = optional.x
-    this.y = optional.y
-    this.z = optional.z
-    this.w = optional.w
-  } else {
     this.x = 0
     this.y = 0
     this.z = 0
     this.w = 0
+
+  if (optional) {
+    if (optional.x) {this.x = optional.x}
+    if (optional.y) {this.y = optional.y}
+    if (optional.z) {this.z = optional.z}
+    if (optional.w) {this.w = optional.w}
   }
+
 }
 
 Vector.prototype.x = 0.0
@@ -143,6 +144,37 @@ Vector.prototype.dot = function (vectorB)
   this.z *= scale
  }
 
+Vector.prototype.distance = function (vectorb) {
+  //returns the distance from this xyz and vectorb's xyz.
+  var distance = new Vector()
+  distance.x = this.x - vectorb.x;
+  distance.y = this.y - vectorb.y;
+  distance.z = this.z - vectorb.z;
+  return distance;
+}
+
+Vector.prototype.add = function (vectorb) {
+  var addedvector = new Vector()
+  addedvector.x = this.x
+  addedvector.y = this.y
+  addedvector.z = this.z
+  addedvector.x += vectorb.x
+  addedvector.y += vectorb.y
+  addedvector.z += vectorb.z
+  return addedvector
+}
+
+Vector.prototype.minus = function (vectorb) {
+  var addedvector = new Vector()
+  addedvector.x = this.x
+  addedvector.y = this.y
+  addedvector.z = this.z
+  addedvector.x -= vectorb.x
+  addedvector.y -= vectorb.y
+  addedvector.z -= vectorb.z
+  return addedvector
+}
+
 /*
   lines.js
 
@@ -197,9 +229,19 @@ Line.prototype.scale = function (scale) {
 	this.y2 = tempy2
 }
 
+Line.prototype.v1 = function () {
+  var v1 = new Vector({x:this.x1, y:this.y1})
+  return v1
+}
+
+Line.prototype.v2 = function () {
+  var v2 = new Vector({x:this.x2, y:this.y2})
+  return v2
+}
+
 Line.prototype.slope = function () {
 
-	if (this.x2 == this.x1) { return 99999999999}
+	if (this.x2 == this.x1) { return Infinity }
 	var slope = (this.y2 - this.y1)/(this.x2 - this.x1)
 	return slope
 }
@@ -220,17 +262,23 @@ Line.prototype.intersect = function (b) {
   var atemp = new Line(this)
   var btemp = new Line(b)
 
-  var status = {status: 0, x: 0, y: 0}
-
+  var status = new Vector();
+  status.status = 0;
   if (this.equals(b)) {
     //the lines are the same
     status.status = 1;
     return status;
   }
 
-  if (atemp.slope() > 9999) {
+  if (atemp.slope() == btemp.slope()) {
+    status.status = 1;
+    return status; 
+  }
+
+  //swap
+  if (atemp.slope() > btemp.slope()) {
     atemp = new Line(b)
-    btemp = new Line(a)
+    btemp = new Line(this)
   }
   
     //move origin to center of line a    
@@ -311,3 +359,9 @@ Line.prototype.move = function (point) {
 var same_sign = function ( a,  b){
   return (( a * b) >= 0);
 }
+
+var module = {}
+module.exports = {}
+module.exports.Line = Line
+module.exports.Vector = Vector
+module.exports.Point = Point

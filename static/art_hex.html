@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none; cursor: none;}
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var hive = []
+
+for (var x = 0; x < window.innerWidth/40; x++) {
+  for (var y = 0; y < window.innerHeight/34; y++) {
+    var obj = {}
+    if (y%2==0) {
+      obj.x = (x*40 + (x+1)*40)/2
+    } else {
+      obj.x = x*40  
+    }
+    
+    obj.y = y*34
+    obj.rot = 0;
+    obj.rotlimit = ((Math.PI*2)/12);
+    hive.push(obj)
+  }
+}
+
+var hiveupdate = function () {
+  for (var y in hive) {
+
+    if (hive[y].rot < hive[y].rotlimit) {
+      hive[y].rot += 0.05
+    } else {
+      hive[y].rot = hive[y].rotlimit
+    }
+
+  }
+}
+
+var drawY = function(x, y, width, size, rotation) {
+  window.pr.beginShape();
+
+  var screenaxis = new Vector({z:1})
+  
+  var pointA = new Vector({x:-width, y:0})
+  pointA.rotate(screenaxis, (Math.PI*2)/6)
+
+  pointA.x = (pointA.x / pointA.y) * -width
+  pointA.y = -width
+
+  var pointB = new Vector({x:-size, y:-width})
+  var pointC = new Vector({x:-size, y:width})
+
+  //offset rotation
+  if (rotation) {
+    pointA.rotate(screenaxis, rotation)
+    pointB.rotate(screenaxis, rotation)
+    pointC.rotate(screenaxis, rotation)
+  }
+    
+
+  for (var a in [0,1,2]) {
+    pointA.rotate(screenaxis, -(Math.PI*2)/3)
+    pointB.rotate(screenaxis, -(Math.PI*2)/3)
+    pointC.rotate(screenaxis, -(Math.PI*2)/3)
+
+    window.pr.vertex(pointA.x+x, pointA.y+y);
+    window.pr.vertex(pointB.x+x, pointB.y+y);
+    window.pr.vertex(pointC.x+x, pointC.y+y);  
+  }
+  
+  window.pr.endShape();
+}
+
+var a = 0
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+    pr.background(5)
+  } 
+
+
+  pr.draw = function() 
+  {   
+    //
+    a += 0.1
+    pr.noStroke();
+    pr.fill(5,5,5,25)
+    pr.rect(0,0,window.innerWidth, window.innerHeight)
+
+    for (var y in hive) {
+      var dx = (hive[y].x - window.innerWidth/2);
+      var dy = (hive[y].y - window.innerHeight/2);
+      var distance = Math.sqrt(dx*dx + dy*dy)
+
+
+
+
+      
+
+    
+      if (Math.sin(a-(distance/75))/2 > 0.49) {
+        if (hive[y].rotlimit == hive[y].rot) {
+          hive[y].rotlimit += Math.PI/3
+        }
+        
+      }
+
+      pr.fill(  255 - (Math.sin(hive[y].rot%(Math.PI/3*2))*255),105-(Math.cos(hive[y].rot%(Math.PI/3*2))*255),255-(Math.sin(hive[y].rot%(Math.PI/2*3))*255),125)
+      drawY(hive[y].x,hive[y].y,3,25, hive[y].rot);  
+
+    }
+      
+       
+
+
+      
+      
+      
+      hiveupdate();
+    
+    
+
+  } //end draw
+  
+} //end processing
+
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>
