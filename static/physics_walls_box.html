@@ -82,7 +82,7 @@ for (var a =0; a < 10; a++) {
   obstacle.line.x2 = Math.random()*window.innerWidth;
   obstacle.line.y1 = Math.random()*window.innerHeight;
   obstacle.line.y2 = Math.random()*window.innerHeight;
-  obstacle.line.scale(0.5)
+  obstacle.line.scale(2)
   walls.push(obstacle)  
 }
 
@@ -94,7 +94,7 @@ game.lasttime = Date.now()/1000;
 game.tDelta = 1/50;
 
 game.gravity = new Vector();
-game.gravity.y = 9.8*10
+game.gravity.y = 9.8*100
 game.gravity.x = 0
 
 var debug = {}
@@ -108,15 +108,19 @@ game.update = function () {
   var p = {}
   p.vI = ball.velocity;
   p.pI = ball.position;
+
   p.vF = new Vector();
   p.vF.x = p.vI.x + (game.gravity.x*game.tDelta)
   p.vF.y = p.vI.y + (game.gravity.y*game.tDelta)
+
   p.distance = new Vector();
   p.distance.x = (p.vI.x + p.vF.x)/2*game.tDelta
   p.distance.y = (p.vI.y + p.vF.y)/2*game.tDelta
+
   p.pF = new Vector()
   p.pF.x = p.pI.x + p.distance.x
   p.pF.y = p.pI.y + p.distance.y
+
   p.line = new Line();
   p.line.x1 = p.pI.x
   p.line.y1 = p.pI.y
@@ -219,9 +223,10 @@ game.update = function () {
         ball.position = p.pF;  
 
         console.log(ball.velocity.length())
+        ball.velocity.scale(0.9)
       }  
-  ball.line.scale(15)
 
+      ball.velocity.scale(0.995)
 }
 
 var processing = function (pr) 
@@ -238,15 +243,10 @@ var processing = function (pr)
     
     game.update();
 
-    //pr.background(25, 25, 25);
-    
-    //pr.fill(25,25,25,10)
-    //pr.rect(0,0,window.innerWidth, window.innerHeight)
+    pr.background(0)
 
-    //BALL
-    //pr.stroke(255,125,0);  
-    pr.stroke(0,255,255,50)
-    pr.fill(0,255,125,50)
+    pr.noStroke()
+    pr.fill(0,255,125)
     pr.ellipse(ball.position.x, ball.position.y, 15, 15)   
 
     //BALL DEBUG LINES
