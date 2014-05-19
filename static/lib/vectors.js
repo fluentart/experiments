@@ -60,6 +60,21 @@ Vector.prototype.normalize = function() {
   }
 }
 
+Vector.prototype.tempnormalize = function() {
+  //scales a vector back to a unit vector. It will have a length of 1
+  var norm = new Vector(this) 
+  
+  var lengthval = this.length()
+  if (lengthval != 0) {
+    norm.x /= lengthval;
+    norm.y /= lengthval;
+    norm.z /= lengthval; 
+    return norm 
+  } else { 
+    return norm
+  }
+}
+
 Vector.prototype.move = function (point) {
   var p = new Point(point)
   this.x += p.x;
@@ -151,6 +166,12 @@ Vector.prototype.distance = function (vectorb) {
   distance.y = this.y - vectorb.y;
   distance.z = this.z - vectorb.z;
   return distance;
+}
+
+Vector.prototype.add2 = function (vectorb) {
+  this.x += vectorb.x
+  this.y += vectorb.y
+  this.z += vectorb.z
 }
 
 Vector.prototype.add = function (vectorb) {

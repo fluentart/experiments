@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none; }
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/three.min.js"></script>
+  <script src="/lib/TrackballControls.js"></script>
+  
+
+  <title>Game</title>
+  </head>
+<body>
+<script>
+    var renderer = new THREE.WebGLRenderer({antialias: true,alpha: true})
+    renderer.setSize( window.innerWidth, window.innerHeight );
+
+    var scene = new THREE.Scene()
+
+    //CAMERA
+
+    var camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 1000 )
+    camera.position.z = 5
+    scene.add(camera)
+
+        var controls = new THREE.TrackballControls( camera );
+        controls.target.set( 0, 0, 0 );
+
+        controls.rotateSpeed = 1.0;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+
+        controls.noZoom = false;
+        controls.noPan = false;
+
+        controls.staticMoving = false;
+        controls.dynamicDampingFactor = 0.15;
+
+        controls.keys = [ 65, 83, 68 ];
+
+        //controls.addEventListener( 'change', render );
+
+    document.body.appendChild( renderer.domElement );           //adds the render output to the document
+
+
+    //CUBE
+    var geometry = new THREE.BoxGeometry( 1, 1, 1, 5, 5, 5);
+
+
+ 
+
+
+
+    /*
+        RENDER FRAMES AND ANIMATE
+    */
+
+    
+
+    var photon = {}
+
+    photon.position = new Vector({x:-2,y:0,z:0});
+    photon.velocity = new Vector({x:0.01,y:0,z:0});
+    photon.electric = new Vector({x:0.0,y:.25,z:0});
+    photon.magnetic = new Vector({x:0.0,y:0,z:.25});
+
+    photon.electric.trail = [];
+    photon.magnetic.trail = [];
+
+    photon.update = function () {
+        photon.position.x += photon.velocity.x
+        photon.position.y += photon.velocity.y
+        photon.position.z += photon.velocity.z
+        photon.electric.rotate(photon.velocity.tempnormalize(), 0.1)
+        photon.magnetic.rotate(photon.velocity.tempnormalize(), 0.1)
+
+        while (photon.electric.trail.length > 100) { photon.electric.trail.splice(0,1); }
+        while (photon.magnetic.trail.length > 100) { photon.magnetic.trail.splice(0,1); }
+    }
+
+
+
+
+
+    ////////////////////////////////////////////////////////////////////////
+    animate();     
+
+    function animate() {
+          controls.update();
+
+        //LIGHT
+        var material = new THREE.MeshBasicMaterial( {color: rgb(75,75,75), wireframe:true} )    
+        var geometry2 = new THREE.Geometry();
+        geometry2.vertices.push(new THREE.Vector3(photon.position.x-(photon.velocity.x)*10, photon.position.y-(photon.velocity.y)*10, photon.position.z-(photon.velocity.z)*10));
+        geometry2.vertices.push(new THREE.Vector3(photon.position.x, photon.position.y, photon.position.z));
+        var photonobj = new THREE.Line(geometry2, material);
+        scene.add(photonobj);      
+        //LIGHT_ELECTRIC
+        var materialelectric = new THREE.MeshBasicMaterial( {color: rgb(45,55,215), wireframe:true} )    
+        var geometryelectric = new THREE.Geometry();
+        geometryelectric.vertices.push(new THREE.Vector3(photon.position.x, photon.position.y, photon.position.z));
+        
+        //POLARISE
+        geometryelectric.vertices.push(new THREE.Vector3(photon.position.x+photon.electric.x, photon.position.y+photon.electric.y, photon.position.z+photon.electric.z));
+        //geometryelectric.vertices.push(new THREE.Vector3(photon.position.x, photon.position.y+photon.electric.y, photon.position.z));
+        
+        var photonelectricobj = new THREE.Line(geometryelectric, materialelectric);
+        scene.add(photonelectricobj);    
+        //LIGHT_MAGNETIC
+        var materialmagnetic = new THREE.MeshBasicMaterial( {color: rgb(215,55,45), wireframe:true} )    
+        var geometrymagnetic = new THREE.Geometry();
+        
+        geometrymagnetic.vertices.push(new THREE.Vector3(photon.position.x, photon.position.y, photon.position.z));
+        
+
+        //POLARISE
+        geometrymagnetic.vertices.push(new THREE.Vector3(photon.position.x+photon.magnetic.x, photon.position.y+photon.magnetic.y, photon.position.z+photon.magnetic.z));
+        //geometrymagnetic.vertices.push(new THREE.Vector3(photon.position.x, photon.position.y, photon.position.z+photon.magnetic.z));
+        
+        var photonmagneticobj = new THREE.Line(geometrymagnetic, materialmagnetic);
+        scene.add(photonmagneticobj);   
+
+        // which then just keeps running because of threejs's requestAnimationFrame(animate) 
+        requestAnimationFrame( animate );         
+        renderer.render( scene, camera );
+
+        photon.update();
+        if (photon.position.x > 2) { 
+          photon.position.x = -2;
+
+            //clear
+            var obj, i;
+            for ( i = scene.children.length - 1; i > 0 ; i -- ) {
+                obj = scene.children[ i ];
+                if ( obj !== camera) {
+                    scene.remove(obj);
+                }
+            }
+
+        }
+        /*scene.remove(photonobj); 
+        scene.remove(photonelectricobj); 
+        scene.remove(photonmagneticobj); */
+
+    }
+
+
+    /*
+        HELPER FUNCTIONS
+    */
+
+    function rgb(red,green,blue) {
+        var r = Math.round( red  )
+        var g = Math.round( green  )
+        var b = Math.round( blue  )
+        return "rgb("+r+","+g+","+b+")"
+    }
+
+</script>
+</body>
+</html>

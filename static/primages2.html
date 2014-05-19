@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none;}
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+/* @pjs preload="/image.jpg"; */
+
+var canvas = document.getElementById("processing");
+
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var star;
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+    star = pr.loadImage("star.png");  
+  } 
+
+  var rotationAnim = 0;
+
+  pr.draw = function() 
+  {   
+    rotationAnim += 0.05;
+    pr.background(25, 25, 25);
+    drawpicture({ image: star, posx: 100, posy: 100, rotation: 0, scale: 1 });    
+    drawpicture({ image: star, posx: 200, posy: 100, rotation: rotationAnim, scale: Math.sin(rotationAnim) });
+    drawpicture({ image: star, posx: 200+ Math.sin(rotationAnim)*50, posy: 150, rotation: -rotationAnim });    
+  } //end draw
+  
+} //end processing
+
+
+
+var drawpicture = function(options) {
+    // lets us easily draw pictures with the center of rotation in the middle of the image
+    // example: drawpicture({ image: star, posx: 200, posy: 100, rotation: Math.PI });
+    var tempimg = options.image;
+    var center = new Vector({x:options.posx, y:options.posy});
+    var topleft = new Vector({x:-options.image.width/2, y:-options.image.height/2}); 
+    if (options.scale) { topleft = new Vector({x:-options.image.width*options.scale/2, y:-options.image.height*options.scale/2}); }
+    var screenaxis = new Vector({z:1});
+    topleft.rotate(screenaxis, options.rotation);
+    window.pr.pushMatrix();     
+    window.pr.translate(center.x + topleft.x, center.y + topleft.y);
+    window.pr.rotate(options.rotation);
+    if (options.scale) { window.pr.scale(options.scale); }
+    window.pr.image(options.image, 0, 0);
+    window.pr.popMatrix(); 
+}
+
+var keydown = function (key) {
+  
+  if (key.keyCode == 87) {//W
+  
+  }
+
+  if (key.keyCode == 68) {//D
+  
+  }
+
+  if (key.keyCode == 83) {//S
+    
+  }
+
+  if (key.keyCode == 65) {//A
+   
+  }
+}
+
+var keyup = function (key) {
+  
+  if (key.keyCode == 87) {//W
+   
+  }
+
+  if (key.keyCode == 68) {//D
+   
+  }
+
+  if (key.keyCode == 83) {//S
+   
+  }
+
+  if (key.keyCode == 65) {//A
+   
+  }
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+
+//preloading
+//processingInstance.externals.sketch.imageCache.add("image.jpg");
+//processingInstance.externals.sketch.imageCache.add("star.png");
+
+
+
+</script>
+</body>
+</html>

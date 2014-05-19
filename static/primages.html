@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none;}
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Game</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+/* @pjs preload="/image.jpg"; */
+
+var canvas = document.getElementById("processing");
+
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var picture, star;
+
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+    picture = pr.loadImage("image.jpg");  
+    star = pr.loadImage("star.png");  
+  } 
+
+  var c = 0;
+
+  pr.draw = function() 
+  {   
+    c += 0.1;
+    //
+    pr.background(25, 25, 25)
+
+    pr.pushMatrix();     
+    pr.translate(window.innerWidth/2, window.innerHeight/2);
+    pr.rotate(c*-0.1);
+    pr.image(star, 0, 0);
+    pr.popMatrix(); 
+
+    pr.pushMatrix();     
+    pr.translate(window.innerWidth/2, window.innerHeight/2);
+    pr.rotate(c/100);
+    pr.image(picture, 0, 0);
+    pr.popMatrix(); 
+
+    pr.pushMatrix();     
+    pr.translate(window.innerWidth/2, window.innerHeight/2);
+    pr.rotate(c*-0.2);
+    pr.image(star, 0, 0);
+    pr.popMatrix(); 
+    
+  } //end draw
+  
+} //end processing
+
+var keydown = function (key) {
+  
+  if (key.keyCode == 87) {//W
+  
+  }
+
+  if (key.keyCode == 68) {//D
+  
+  }
+
+  if (key.keyCode == 83) {//S
+    
+  }
+
+  if (key.keyCode == 65) {//A
+   
+  }
+}
+
+var keyup = function (key) {
+  
+  if (key.keyCode == 87) {//W
+   
+  }
+
+  if (key.keyCode == 68) {//D
+   
+  }
+
+  if (key.keyCode == 83) {//S
+   
+  }
+
+  if (key.keyCode == 65) {//A
+   
+  }
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+processingInstance.externals.sketch.imageCache.add("image.jpg");
+processingInstance.externals.sketch.imageCache.add("star.png");
+
+
+
+</script>
+</body>
+</html>
