@@ -366,6 +366,10 @@ Line.prototype.rotate = function (vectoraxis, angle) {
 }
 
 Line.prototype.nearestLineDistance = function (lineB) {
+  /* This gets the length of the shortest line connecting 
+     two arbitrary lines in 3d space. Useful to measuring 
+     ray to line distance.
+  */
   var d,num,den;
   var a1=this.x1
   var b1=this.y1
