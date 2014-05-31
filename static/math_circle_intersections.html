@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(255,255,255); overflow: hidden;
+    }
+
+    #processing {outline: none; }
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Circles</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+    
+  } 
+
+  pr.draw = function() 
+  {   
+    pr.background(45)
+    pr.translate(window.innerWidth/2,window.innerHeight/2)
+    pr.stroke(85)
+    pr.line(-1000,0,1000,0)
+    pr.line(0,-1000,0,1000)
+    pr.noStroke();
+    //end setup
+    
+
+    var circleA = new Circle({x: 0, y: 0, z: 0, r: 75.001})
+    var circleB = new Circle({x: pr.mouseX-window.innerWidth/2, y: pr.mouseY-window.innerHeight/2, z: 0, r: 80.001})    
+    
+    pr.fill(255,0,0,50)
+    pr.ellipse(circleA.position.x,circleA.position.y,circleA.d,circleA.d);
+    pr.fill(0,255,0,50)
+    pr.ellipse(circleB.position.x,circleB.position.y,circleB.d,circleB.d);
+
+    //calc intersect
+
+    pr.stroke(255)
+    
+    //move A onto 0,0
+    var offset = circleA.position.Scale(-1)
+    circleA.position.move(offset)
+    circleB.position.move(offset)
+
+    //rotate B onto axis
+    var xaxis = new Vector({x:1})
+    var angle = circleB.position.angle(xaxis)
+    var crossvec = new Vector(circleB.position)
+    crossvec.cross(xaxis)
+    crossvec.normalize();
+    circleB.position.rotate(crossvec, angle)
+
+    //calculate intersection point
+    var d = circleB.position.length()
+    var a = 1/d * Math.sqrt( (-d+circleB.r-circleA.r)*(-d-circleB.r+circleA.r)*(-d+circleB.r+circleA.r)*(d+circleB.r+circleA.r) )    
+    var intersectx = (d*d - circleB.r*circleB.r + circleA.r*circleA.r)/(2*d)
+    var intersectionpoint = new Vector({x:intersectx, y:a/2})
+    var intersectionpointB = new Vector({x:intersectx, y:-a/2})
+    pr.line(intersectionpoint.x,intersectionpoint.y,intersectionpointB.x,intersectionpointB.y)
+    pr.ellipse(circleA.position.x,circleA.position.y,circleA.d,circleA.d);
+    pr.ellipse(circleB.position.x,circleB.position.y,circleB.d,circleB.d);
+
+    //move/rotate back onto original position
+    //circleB.position.rotate(zaxis, 1, circleA.position)
+    circleB.position.rotate(crossvec, -angle)
+    intersectionpoint.rotate(crossvec, -angle)
+    intersectionpointB.rotate(crossvec, -angle)
+
+    offset.scale(-1)
+    circleA.position.move(offset)
+    circleB.position.move(offset)
+    intersectionpoint.move(offset)
+    intersectionpointB.move(offset)
+
+    pr.fill(0,0,255,50)
+    pr.line(intersectionpoint.x,intersectionpoint.y,intersectionpointB.x,intersectionpointB.y)
+    pr.ellipse((intersectionpoint.x+intersectionpointB.x)/2, (intersectionpoint.y+intersectionpointB.y)/2, a, a  )
+    pr.ellipse(circleA.position.x,circleA.position.y,circleA.d,circleA.d);
+    pr.ellipse(circleB.position.x,circleB.position.y,circleB.d,circleB.d);
+
+  } //end draw  
+} //end processing
+
+var keydown = function (key) {
+
+}
+
+var keyup = function (key) {
+
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(25,25,25); overflow: hidden;
+    }
+
+    #processing {outline: none; }
+
+  </style>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Circles</title>
+  </head>
+<body>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+    pr.background(0)
+  } 
+
+  pr.draw = function() 
+  {   
+    
+
+
+  } //end draw  
+} //end processing
+
+var keydown = function (key) {
+
+}
+
+var keyup = function (key) {
+
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>

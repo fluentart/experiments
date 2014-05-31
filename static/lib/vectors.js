@@ -24,6 +24,7 @@ Point.prototype.scale = function (factor) {
 }
 
 function Vector(optional) { 
+    this.type = "vector"
     this.x = 0
     this.y = 0
     this.z = 0
@@ -131,10 +132,21 @@ Vector.prototype.dot = function (vectorB)
   this.w = out.w
 }
 
- Vector.prototype.rotate = function (inputaxis, inputangle) {
+ Vector.prototype.rotate = function (inputaxis, inputangle, center) {
+
+
   
   var vector = new Vector(this)
   vector.w = 0
+
+  if (center) {
+    if (center.type != "vector") { console.error("error: rotate center is not type vector"+center)}
+    // if a center is defined, we use this instead of assuming 0,0,0 as center.
+    // this is done by a quick translate to offset the center to 0,0,0 temporarily, and reverted at the end.
+    vector.x -= center.x
+    vector.y -= center.y
+    vector.z -= center.z
+  }
 
   var axis = new Vector({ 
     x: inputaxis.x * Math.sin(inputangle/2),     
@@ -151,12 +163,31 @@ Vector.prototype.dot = function (vectorB)
   this.x = axis.x
   this.y = axis.y
   this.z = axis.z
+
+  if (center) {
+    // if a center is defined, we use this instead of assuming 0,0,0 as center.
+    // this is done by a quick translate to offset the center to 0,0,0 temporarily, and reverted at the end.
+    this.x += center.x
+    this.y += center.y
+    this.z += center.z
+  }
+
 }
+
+
 
  Vector.prototype.scale = function (scale) { 
   this.x *= scale
   this.y *= scale
   this.z *= scale
+ }
+
+ Vector.prototype.Scale = function (scale) { 
+  var a = new Vector(this)
+  a.x *= scale
+  a.y *= scale
+  a.z *= scale
+  return a
  }
 
 Vector.prototype.distance = function (vectorb) {
@@ -379,6 +410,80 @@ Line.prototype.move = function (point) {
 
 var same_sign = function ( a,  b){
   return (( a * b) >= 0);
+}
+
+
+
+var Bone = function (v1, v2) {
+  if (v1) {this.v1 = v1} else {this.v1 = new Vector()}
+  if (v2) {this.v2 = v2} else {this.v2 = new Vector()}  
+}
+
+var Circle = function (options) {
+  this.position = new Vector({x:options.x, y: options.y, z:options.z})
+  if (options.r) {
+    this.r = options.r
+    this.d = options.r * 2
+  } else {
+    this.r = 1
+    this.d = 2
+  }  
+
+}
+
+Circle.prototype.intersect = function (circleB) {
+    //move A onto 0,0
+    var offset = this.position.Scale(-1)
+    this.position.move(offset)
+    circleB.position.move(offset)
+
+    //rotate B onto axis
+    var xaxis = new Vector({x:1})
+    var angle = 0
+    var crossvec = new Vector(circleB.position)
+    if (this.position.y == circleB.position.y) {
+      xaxis = new Vector({x:1})
+      if (circleB.position.x < this.position.x) {
+        angle = Math.PI
+      } else {
+        angle = 0;
+      }
+      crossvec = new Vector({z:1})
+      crossvec.cross(xaxis)
+      crossvec.normalize();
+      circleB.position.rotate(crossvec, angle)
+    } else {
+      xaxis = new Vector({x:1})
+      angle = circleB.position.angle(xaxis)
+      crossvec = new Vector(circleB.position)
+      crossvec.cross(xaxis)
+      crossvec.normalize();
+      circleB.position.rotate(crossvec, angle)
+    }
+    //calculate intersection point
+    var d = circleB.position.length()
+    var a = 1/d * Math.sqrt( (-d+circleB.r-this.r)*(-d-circleB.r+this.r)*(-d+circleB.r+this.r)*(d+circleB.r+this.r) )    
+    var intersectx = (d*d - circleB.r*circleB.r + this.r*this.r)/(2*d)
+    var intersectionPoint = new Vector({x:intersectx, y:a/2})
+    var intersectionPointB = new Vector({x:intersectx, y:-a/2})
+    
+
+    //move/rotate back onto original position
+    //circleB.position.rotate(zaxis, 1, this.position)
+    circleB.position.rotate(crossvec, -angle)
+    intersectionPoint.rotate(crossvec, -angle)
+    intersectionPointB.rotate(crossvec, -angle)
+
+    offset.scale(-1)
+    this.position.move(offset)
+    circleB.position.move(offset)
+    intersectionPoint.move(offset)
+    intersectionPointB.move(offset)
+
+    var returnobj = {}
+    returnobj.pointA = intersectionPoint
+    returnobj.pointB = intersectionPointB
+    return returnobj
 }
 
 var module = {}

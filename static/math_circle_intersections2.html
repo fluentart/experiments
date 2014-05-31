@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    * { 
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    
+    body { 
+      background-color: rgb(255,255,255); overflow: hidden;
+    }
+
+    #processing {outline: none; }
+
+    #x {
+      position: absolute;
+    }
+
+  </style>
+  <script src="/lib/jquery-1.11.0.min.js"></script>
+  <script src="/lib/vectors.js"></script>
+  <script src="/lib/processing.min.js"></script>
+
+  <title>Circles</title>
+  </head>
+<body>
+<div id="x">1234</div>
+<canvas id="processing" ></canvas>
+<script>
+var canvas = document.getElementById("processing");
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+var processing = function (pr) 
+{
+  pr.setup = function() 
+  { 
+    window.pr = pr; //makes it available globally
+    pr.size( window.innerWidth, window.innerHeight ); 
+    
+  } 
+
+  pr.draw = function() 
+  {   
+    pr.background(45)
+    pr.translate(window.innerWidth/2,window.innerHeight/2)
+    pr.stroke(85)
+    pr.line(-1000,0,1000,0)
+    pr.line(0,-1000,0,1000)
+    pr.noStroke();
+    //end setup
+
+    
+    
+
+    var circleA = new Circle({x: 150, y: 100, z: 0, r: 75})
+    var circleB = new Circle({x: pr.mouseX-window.innerWidth/2, y: pr.mouseY-window.innerHeight/2, z: 0, r: 120})    
+    var intersect = circleA.intersect(circleB)
+    
+    pr.stroke(255)
+    pr.line(intersect.pointA.x, intersect.pointA.y, intersect.pointB.x, intersect.pointB.y)
+    
+    pr.stroke(255,125,0,255)
+    pr.fill(255,125,0,55)
+    pr.ellipse(circleA.position.x,circleA.position.y,circleA.d,circleA.d);    
+    
+    pr.line(intersect.pointA.x, intersect.pointA.y, circleA.position.x, circleA.position.y)
+    pr.line(circleA.position.x, circleA.position.y, intersect.pointB.x, intersect.pointB.y)
+    
+    pr.stroke(0,125,255,255)
+    pr.fill(0,125,255,55)
+    pr.ellipse(circleB.position.x,circleB.position.y,circleB.d,circleB.d);
+    
+    pr.line(intersect.pointA.x, intersect.pointA.y, circleB.position.x, circleB.position.y)
+    pr.line(circleB.position.x, circleB.position.y, intersect.pointB.x, intersect.pointB.y)
+  
+    //$("#x").css("top", window.innerHeight/2 + circleB.position.y)
+
+  } //end draw  
+} //end processing
+
+var keydown = function (key) {
+
+}
+
+var keyup = function (key) {
+
+}
+
+var mousemove = function (mouse) {
+
+}
+
+var mousedown = function (data) {
+
+}
+
+var resize = function () {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.pr.size( window.innerWidth, window.innerHeight ); 
+}
+
+document.addEventListener( 'keyup', keyup, false );
+document.addEventListener( 'keydown', keydown, false );
+document.addEventListener( 'mousemove', mousemove, false );
+document.addEventListener( 'mousedown', mousedown, false );
+window.addEventListener('resize', resize, false);
+
+
+var processingInstance = new Processing(canvas, processing); //THIS SHOULD BE AT THE END
+</script>
+</body>
+</html>
