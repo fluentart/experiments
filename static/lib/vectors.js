@@ -48,6 +48,16 @@ Vector.prototype.length = function () {
   return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z )
 }
 
+
+Vector.prototype.Length = function (length) {
+  //returns scaled vector to Length
+  var newvec = new Vector(this)
+  newvec.normalize();
+  newvec.scale(length)
+  return newvec
+}
+
+
 Vector.prototype.normalize = function() {
   //scales a vector back to a unit vector. It will have a length of 1
   var lengthval = this.length()
@@ -112,6 +122,24 @@ Vector.prototype.crossNew = function(vectorB)
   tempvec.y = (this.z*vectorB.x) - (this.x*vectorB.z);
   tempvec.z = (this.x*vectorB.y) - (this.y*vectorB.x);
   return tempvec
+}
+
+Vector.prototype.crossproduct = function(vectorB)
+{
+  var p1,q1,r1,p2,q2,r2;
+  p1 = this.x
+  q1 = this.y
+  r1 = this.z
+  p2 = vectorB.x
+  q2 = vectorB.y
+  r2 = vectorB.z
+  var a,b,c;
+  a=(q1*r2)-(q2*r1);
+  b=(r1*p2)-(r2*p1);
+  c=(p1*q2)-(p2*q1);
+  var cross=Math.pow(a,2)+Math.pow(b,2)+Math.pow(c,2);
+  var crossres=Math.sqrt(cross);
+  return crossres;
 }
 
 Vector.prototype.dot = function (vectorB)
@@ -216,7 +244,30 @@ Vector.prototype.add = function (vectorb) {
   return addedvector
 }
 
+//capital functions return new object
+Vector.prototype.Add = function (vectorb) {
+  var addedvector = new Vector()
+  addedvector.x = this.x
+  addedvector.y = this.y
+  addedvector.z = this.z
+  addedvector.x += vectorb.x
+  addedvector.y += vectorb.y
+  addedvector.z += vectorb.z
+  return addedvector
+}
+
 Vector.prototype.minus = function (vectorb) {
+  var addedvector = new Vector()
+  addedvector.x = this.x
+  addedvector.y = this.y
+  addedvector.z = this.z
+  addedvector.x -= vectorb.x
+  addedvector.y -= vectorb.y
+  addedvector.z -= vectorb.z
+  return addedvector
+}
+
+Vector.prototype.Minus = function (vectorb) {
   var addedvector = new Vector()
   addedvector.x = this.x
   addedvector.y = this.y
@@ -241,20 +292,32 @@ function Line(optional) {
   if (optional) {
     this.x1 = optional.x1
     this.y1 = optional.y1
+    this.z1 = optional.z1
     this.x2 = optional.x2
     this.y2 = optional.y2
+    this.z2 = optional.z2
   } else {
 	this.x1 = 0.0
 	this.y1 = 0.0
+  this.z1 = 0.0
 	this.x2 = 0.0
 	this.y2 = 0.0
+  this.z2 = 0.0
   }
+
+  //this.v1 = new Vector({x:this.x1, y:this.y1, z:this.z1})
+  //this.v2 = new Vector({x:this.x2, y:this.y2, z:this.z2})  
 }
 
-Line.prototype.x1 = 0.0
-Line.prototype.y1 = 0.0
-Line.prototype.x2 = 0.0
-Line.prototype.y2 = 0.0
+Line.prototype.v1 = function () {
+  var v1 = new Vector({x:this.x1, y:this.y1, z:this.z1}) 
+  return v1
+}
+
+Line.prototype.v2 = function () {
+  var v2 = new Vector({x:this.x2, y:this.y2, z:this.z2}) 
+  return v2
+}
 
 Line.prototype.scale = function (scale) {
 	var centerx = (this.x1 + this.x2)/2
@@ -279,17 +342,10 @@ Line.prototype.scale = function (scale) {
 	this.y1 = tempy1
 	this.x2 = tempx2
 	this.y2 = tempy2
+
 }
 
-Line.prototype.v1 = function () {
-  var v1 = new Vector({x:this.x1, y:this.y1})
-  return v1
-}
 
-Line.prototype.v2 = function () {
-  var v2 = new Vector({x:this.x2, y:this.y2})
-  return v2
-}
 
 Line.prototype.slope = function () {
 
@@ -307,6 +363,47 @@ Line.prototype.rotate = function (vectoraxis, angle) {
 	this.y1 = tempvec1.y
 	this.x2 = tempvec2.x
 	this.y2 = tempvec2.y
+}
+
+Line.prototype.nearestLineDistance = function (lineB) {
+  var d,num,den;
+  var a1=this.x1
+  var b1=this.y1
+  var c1=this.z1
+  var p1=this.x2 - this.x1
+  var q1=this.y2 - this.y1
+  var r1=this.z2 - this.z1
+  var a2=lineB.x1
+  var b2=lineB.y1
+  var c2=lineB.z1
+  var p2=lineB.x2 - lineB.x1
+  var q2=lineB.y2 - lineB.y1
+  var r2=lineB.z2 - lineB.z1
+  var a12=a1-a2;
+  var b12=b1-b2;
+  var c12=c1-c2;
+
+   this.direction = new Vector({x:p1, y:q1, z:r1})
+   lineB.direction = new Vector({x:p2, y:q2, z:r2})
+
+  var cross=this.direction.crossproduct(lineB.direction)
+  if(cross!=0)
+  {
+    num=((q1*r2-q2*r1)*a12)+((r1*p2-r2*p1)*b12)+((p1*q2-p2*q1)*c12);
+    d=Math.abs(num/cross);
+    return d;
+  }
+  else
+  {
+    var p,q,r;
+    p=b12*r1-c12*q1;
+    q=c12*p1-a12*r1;
+    r=a12*q1-b12*p1;
+    var num=Math.sqrt((p*p)+(q*q)+(r*r));
+    den=Math.sqrt((p1*p1)+(q1*q1)+(r1*r1));
+    d=num/den;
+    return d;
+  }
 }
 
 //calculates the intersection point for this line and another (b)
@@ -418,6 +515,17 @@ var Bone = function (v1, v2) {
   if (v1) {this.v1 = v1} else {this.v1 = new Vector()}
   if (v2) {this.v2 = v2} else {this.v2 = new Vector()}  
 }
+
+
+
+Bone.prototype.addConstraint = function(constraint) {
+  if (constraint.type == "rotationConstraint") {
+
+    this.rotationaxis = constraint.rotationaxis
+  }
+
+}
+
 
 var Circle = function (options) {
   this.position = new Vector({x:options.x, y: options.y, z:options.z})
